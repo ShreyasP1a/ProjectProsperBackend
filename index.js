@@ -1,4 +1,4 @@
-const env =require('dotenv').config({ path: '../.env' })
+const env =require('dotenv').config({ path: './env' })
 const express = require('express')
 const bodyParser = require('body-parser')
 const cors = require('cors')
