@@ -1,5 +1,7 @@
 const aws = require('aws-sdk');
+
 const awsConfig = require('aws-config');
+
 //models
 const User = require('../models/user-model')
 const Loan = require('../models/loan-model')
@@ -338,8 +340,16 @@ const createUser = async (req, res) => {
 
         //if user does not exist
         if (!users) {
-
-            const user = new User(body)
+            let newUserObj = {
+                "firstName": body.username, 
+                "lastName":body.lastName, 
+                "email":body.phoneNumber, 
+                "phoneNumber": body.phoneNumber, 
+                "username": body.username, 
+                "password": body.password, 
+                "admin": false
+            }
+            const user = new User(newUserObj)
 
             if (!user) {
                 return res.status(400).json({ success: false, error: err })
@@ -417,17 +427,6 @@ const adminDelete = async (req, res) => {
 
 
 const getUsers = async (req, res) => {
-    if (!req.body.wanted)
-        return res.status(404).json({ success: false, error: `no data found` })
-    if (req.body.wanted.includes("password")) {
-        return res.status(404).json({ success: false, error: `Pasword is a blocked field` })
-    }
-    if (req.body.wanted.includes("resetPassword")) {
-        return res.status(404).json({ success: false, error: `resetPasword is a blocked field` })
-    }
-    if (req.body.wanted.includes("sessionid")) {
-        return res.status(404).json({ success: false, error: `sessionid is a blocked field` })
-    }
     await User.findOne({ $and: [{ sessionid: { $exists: true } }, { sessionid: req.signedCookies.Sessionid }] }, async (err, user) => {
         if (err) {
             return res.status(400).json({ success: false, error: err })
@@ -499,18 +498,7 @@ const login = async (req, res) => {
 }
 
 const getUserBySession = async (req, res) => {
-    if (!req.body.wanted)
-        return res.status(404).json({ success: false, error: `no data found` })
-    if (req.body.wanted.includes("password")) {
-        return res.status(404).json({ success: false, error: `Pasword is a blocked field` })
-    }
-    if (req.body.wanted.includes("resetPassword")) {
-        return res.status(404).json({ success: false, error: `resetPasword is a blocked field` })
-    }
-    if (req.body.wanted.includes("sessionid")) {
-        return res.status(404).json({ success: false, error: `sessionid is a blocked field` })
-    }
-    await User.findOne({ $and: [{ sessionid: { $exists: true } }, { sessionid: req.signedCookies.Sessionid }] }, req.body.wanted, (err, user) => {
+    await User.findOne({ $and: [{ sessionid: { $exists: true } }, { sessionid: req.signedCookies.Sessionid }] }, "qualified admin applicationSent username loan_information", (err, user) => {
         if (err) {
             return res.status(400).json({ success: false, error: err })
         }
